@@ -1,0 +1,13 @@
+pip install django djangorestframework psycopg2-binary requests
+mkdir backend
+cd backend
+django-admin startproject musicmood_core
+cd musicmood_core
+python manage.py startapp tracks
+python manage.py startapp favorites
+backend/config.py
+tracks/functions.py
+cd ../
+pip install django-cors-headers
+python manage.py makemigrations
+python manage.py migrate
