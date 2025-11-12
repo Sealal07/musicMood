@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .functions import get_time_of_day
-from backend.config import JAMENDO_URL, JAMENDO_CLIENT_ID
+from .config import JAMENDO_URL, JAMENDO_CLIENT_ID
 
 # словарь на теги Jamendo
 

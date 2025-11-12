@@ -11,3 +11,10 @@ cd ../
 pip install django-cors-headers
 python manage.py makemigrations
 python manage.py migrate
+
+REACT
+
+npm create vite@latest frontend -- --template react
+cd frontend
+
+npm install axios bootstrap react-bootstrap react-icons
