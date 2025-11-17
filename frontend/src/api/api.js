@@ -31,7 +31,7 @@ export const getFavorites = async (userId=DEFAULT_USER_ID) => {
 
 
 //добавление в избранное
-export const addFavotites = async (track) => {
+export const addFavorites = async (track) => {
 //POST /api/favorites/
     const dataToSend = {
         user_id: DEFAULT_USER_ID,
