@@ -33,7 +33,7 @@ export const getFavorites = async (userId=DEFAULT_USER_ID) => {
 //добавление в избранное
 export const addFavotites = async (track) => {
 //POST /api/favorites/
-    cons dataToSend = {
+    const dataToSend = {
         user_id: DEFAULT_USER_ID,
         track_id: track.track_id,
         name_track: track.name_track,
