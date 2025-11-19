@@ -21,22 +21,20 @@ const MOODS = [
 ];
 
 const MainTabs = ({ onTrackPlay, currentTrack, setCurrentPlaylist }) => {
-    const [key, setKey] = useState('mood'); // активная вкладка
-    const [tracks, setTracks] = useState([]); // текущий список треков
-    const [favorites, setFavorites] = useState([]); // список избранного
+    const [key, setKey] = useState('mood');
+    const [tracks, setTracks] = useState([]);
+    const [favorites, setFavorites] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeMood, setActiveMood] = useState('joy');
-    const [timeOfDay, setTimeOfDay] = useState(''); // Для отображения времени суток
+    const [timeOfDay, setTimeOfDay] = useState('');
 
-    // Проверка является ли трек избранным
     const isFavorite = useMemo(() => {
         const favTrackIds = new Set(favorites.map(fav => fav.track_id));
         return (track) => favTrackIds.has(track.track_id);
     }, [favorites]);
 
-    //   ЛОГИКА ИЗБРАННОГО
     const fetchFavorites = useCallback(async () => {
         try {
             const response = await getFavorites();
@@ -54,8 +52,6 @@ const MainTabs = ({ onTrackPlay, currentTrack, setCurrentPlaylist }) => {
             if (favStatus) {
                 await removeFavorite(track.track_id);
                 setFavorites(prev => prev.filter(fav => fav.track_id !== track.track_id));
-
-                // Если мы на вкладке избранного, сразу убираем трек из списка отображения
                 if (key === 'favorites') {
                     setTracks(prev => prev.filter(t => t.track_id !== track.track_id));
                     setCurrentPlaylist(prev => prev.filter(t => t.track_id !== track.track_id));
@@ -70,14 +66,12 @@ const MainTabs = ({ onTrackPlay, currentTrack, setCurrentPlaylist }) => {
         }
     };
 
-    //  ЛОГИКА ЗАГРУЗКИ ТРЕКОВ
     const loadContent = useCallback(async (activeKey, mood = activeMood) => {
         setLoading(true);
         setError(null);
         let newTracks = [];
 
         try {
-            // Сначала всегда обновляем избранное, чтобы сердечки были актуальны
             const favData = await fetchFavorites();
 
             if (activeKey === 'mood') {
@@ -101,7 +95,6 @@ const MainTabs = ({ onTrackPlay, currentTrack, setCurrentPlaylist }) => {
         }
     }, [activeMood, setCurrentPlaylist, fetchFavorites]);
 
-    // ПОИСК
     const handleSearch = async (e) => {
         e.preventDefault();
         if (!searchQuery.trim()) return;
@@ -112,7 +105,6 @@ const MainTabs = ({ onTrackPlay, currentTrack, setCurrentPlaylist }) => {
             const response = await searchTracks(searchQuery);
             setTracks(response.data);
             setCurrentPlaylist(response.data);
-            // Сбрасываем вкладку, чтобы не горели "Mood" или "Favorites"
             setKey('results');
         } catch (e) {
             setError('Ошибка поиска');
@@ -122,21 +114,17 @@ const MainTabs = ({ onTrackPlay, currentTrack, setCurrentPlaylist }) => {
         }
     };
 
-    // Смена настроения (клик по смайлику)
     const handleMoodClick = (moodKey) => {
         setActiveMood(moodKey);
         loadContent('mood', moodKey);
     };
 
-    // Загрузка при смене вкладки
     useEffect(() => {
         if (key !== 'results') {
             loadContent(key);
         }
     }, [key, loadContent]);
 
-
-    // Компонент списка треков (внутренний)
     const TrackListRender = ({ list }) => (
         <Row className='mt-4 g-3 justify-content-center'>
             {list && list.length > 0 ? (
@@ -164,9 +152,105 @@ const MainTabs = ({ onTrackPlay, currentTrack, setCurrentPlaylist }) => {
     );
 
     return (
+        <Container className='py-4'>
+            <h2 className='text-center mb-4 text-primary'>
+                MusicMood
+            </h2>
+            <Form onSubmit={handleSearch} className='mb-4'>
+                <InputGroup size='lg'>
+                    <Form.Control
+                        placeholder='Найти трек...'
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    <Button variant='primary' type='submit'>
+                        <FaSearch />
+                    </Button>
+                </InputGroup>
+            </Form>
 
+            {key === 'results' ? (
+                <>
+                    <div className='d-flex justify-content-between align-items-center mb-3'>
+                        <h4>Результаты поиска: '{searchQuery}'</h4>
+                        <Button variant='link' onClick={() => setKey('mood')}>
+                            Вернуться назад
+                        </Button>
+                    </div>
+                    {error && <Alert variant='danger'>{error}</Alert>}
+                    {loading ? (
+                        <div className='text-center py-5'>
+                            <Spinner animation='border' variant='primary' />
+                        </div>
+                    ) : (
+                        <TrackListRender list={tracks} />
+                    )}
+                </>
+            ) : (
+                <Tabs
+                    id='main-tabs'
+                    activeKey={key}
+                    onSelect={(k) => setKey(k)}
+                    className='mb-3 nav-pills justify-content-center'
+                >
+                    <Tab eventKey='mood' title='По настроению'>
+                        <div className='d-flex justify-content-center gap-3 my-3 flex-wrap'>
+                            {MOODS.map((m) => (
+                                <Button
+                                    key={m.key}
+                                    variant={activeMood === m.key ? 'primary' : 'outline-primary'}
+                                    onClick={() => handleMoodClick(m.key)}
+                                    className='rounded-pill px-4 py-2 d-flex align-items-center gap-2'
+                                >
+                                    <span style={{ fontSize: '1.5rem' }}>{m.icon}</span> {m.name}
+                                </Button>
+                            ))}
+                        </div>
+                        {error && <Alert variant='danger'>{error}</Alert>}
+                        {loading ? (
+                            <div className='text-center py-5'>
+                                <Spinner animation='border' variant='primary' />
+                            </div>
+                        ) : (
+                            <TrackListRender list={tracks} />
+                        )}
+                    </Tab>
 
+                    <Tab eventKey='collection' title='Подборка'>
+                        <div className='text-center my-3'>
+                            {timeOfDay && (
+                                <h4 className='text-muted'>
+                                    Сейчас: {timeOfDay === 'morning' ? 'Утро' :
+                                        timeOfDay === 'afternoon' ? 'День' :
+                                        timeOfDay === 'evening' ? 'Вечер' : 'Ночь'
+                                    }
+                                </h4>
+                            )}
+                        </div>
+                        {error && <Alert variant='danger'>{error}</Alert>}
+                        {loading ? (
+                            <div className='text-center py-5'>
+                                <Spinner animation='border' variant='primary' />
+                            </div>
+                        ) : (
+                            <TrackListRender list={tracks} />
+                        )}
+                    </Tab>
 
-        );
-}
+                    <Tab eventKey='favorites' title='Избранное'>
+                        {error && <Alert variant='danger'>{error}</Alert>}
+                        {loading ? (
+                            <div className='text-center py-5'>
+                                <Spinner animation='border' variant='primary' />
+                            </div>
+                        ) : (
+                            <TrackListRender list={tracks} />
+                        )}
+                    </Tab>
+                </Tabs>
+            )}
+        </Container>
+    );
+};
 
+export default MainTabs;

@@ -1,35 +1,50 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState, useCallback } from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import MainTabs from './components/MainTabs';
+import MusicPlayer from './components/MusicPlayer';
 
-function App() {
-  const [count, setCount] = useState(0)
+ const App = () => {
+     const [currentTrack, setCurrentTrack] = useState(null);
+     const [currentPlaylist, setCurrentPlaylist] = useState([]);
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+     const handleTrackPlay = (track) => {
+         setCurrentTrack(track);
+     };
 
-export default App
+     const handleNext = useCallback(() => {
+         if (!currentTrack || currentPlaylist.length === 0) return;
+            const currentIndex = currentPlaylist.findIndex(t => t.track_id === currentTrack.track_id);
+            if (currentIndex !== -1 && currentIndex < currentPlaylist.length - 1){
+                setCurrentTrack(currentPlaylist[currentIndex + 1]);
+            }
+        }, [currentTrack, currentPlaylist]);
+
+     const handlePrev = useCallback(() => {
+         if (!currentTrack || currentPlaylist.length === 0) return;
+            const currentIndex = currentPlaylist.findIndex(t => t.track_id === currentTrack.track_id);
+            if (currentIndex > 0){
+                setCurrentTrack(currentPlaylist[currentIndex - 1]);
+            }
+        }, [currentTrack, currentPlaylist]);
+
+    return (
+        <div className='d-flex-column min-vh-100 bg-light'>
+            <div className='flex-grow-1 w-100' style={{ paddingBottom: '100px' }}>
+                <MainTabs
+                    onTrackPlay={handleTrackPlay}
+                    currentTrack={currentTrack}
+                    setCurrentPlaylist={setCurrentPlaylist}
+                />
+            </div>
+            <MusicPlayer
+                currentTrack={currentTrack}
+                currentPlaylist={currentPlaylist}
+                onNext={handleNext}
+                onPrev={handlePrev}
+           />
+           </div>
+        );
+
+     }
+
+export default App;
