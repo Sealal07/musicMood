@@ -46,7 +46,7 @@ def get_jamendo_tracks(tag=None, search_query=None):
             tracks = [
                 {
                     'track_id': track['id'],
-                    'name_tracks': track['name'],
+                    'name_track': track['name'],
                     'artist_name': track['artist_name'],
                     'audio_url': track['audio'],
                     'album_image': track['image'],
